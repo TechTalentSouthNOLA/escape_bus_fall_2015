@@ -30,6 +30,10 @@ class LocationsController < ApplicationController
         @nearby_buses << bus
       end
     end
+
+    if @nearby_buses.empty?
+      redirect_to edit_location_url(@location), notice: "No locations nearby.  Try editing your location."
+    end
   end
 
   # GET /locations/new
