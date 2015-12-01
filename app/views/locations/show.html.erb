@@ -39,6 +39,7 @@
 <script type="text/javascript">
   function initialize() {
     var userLocation = new google.maps.LatLng(<%= @location.latitude %>, <%= @location.longitude %>);
+    var userIcon = "<%= image_path 'man_icon.png' %>";
 
     var mapOptions = {
       center: userLocation,
@@ -48,11 +49,28 @@
     var map = new google.maps.Map(document.getElementById('map-canvas'),
         mapOptions);
 
+    // Add user location marker to map
     var userMarker = new google.maps.Marker({
       position: userLocation,
       map: map,
       animation: google.maps.Animation.DROP,
-      title: 'You are here.'
+      title: 'You are here.',
+      icon: userIcon
+    });
+
+    // Get all the nearby buses and convert to JSON
+    var nearbyBuses = <%= raw @nearby_buses.to_json %>;
+
+    // Looping through the nearby buses to put bus markers on map
+    nearbyBuses.forEach(function (element){
+      var busLocation = new google.maps.LatLng(element['LATITUDE'], element['LONGITUDE']);
+
+      var busMarker = new google.maps.Marker({
+        position: busLocation,
+        map: map,
+        animation: google.maps.Animation.DROP,
+        title: element["ROUTE"] + ' ' + element['DIRECTION']
+      });
     });
   }
   google.maps.event.addDomListener(window, 'load', initialize);
