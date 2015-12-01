@@ -1,9 +1,12 @@
 <div class="row">
   <div class="col-sm-10 col-sm-offset-1">
     <h1 class='text-center text-primary'>Escape Bus</h1>
+
     <div class="well">
       <h2 class="text-muted">You are currently standing at...</h2>
       <p><%= @location.my_location %></p>
+
+      <div id="map-canvas" style="height:300px;width:500px;margin:0;padding:0;"></div>
 
       <h2 class="text-muted">The closest buses are...</h2>
 
@@ -32,3 +35,64 @@
     </div>
   </div>
 </div>
+
+<script type="text/javascript">
+  function initialize() {
+    // User latitude and longitude
+    var userLocation = new google.maps.LatLng(<%= @location.latitude %>, <%= @location.longitude %>);
+
+    // Custom icon for user marker
+    var userIcon = "<%= image_path 'man_icon.png' %>";
+
+    // Map options and map
+    var mapOptions = {
+      center: userLocation,
+      zoom: 15
+    };
+
+    var map = new google.maps.Map(document.getElementById('map-canvas'),
+        mapOptions);
+
+    // Add user location marker to map
+    var userMarker = new google.maps.Marker({
+      position: userLocation,
+      map: map,
+      animation: google.maps.Animation.DROP,
+      title: 'You are here.',
+      icon: userIcon
+    });
+
+    // Get all the nearby buses and convert to JSON
+    var nearbyBuses = <%= raw @nearby_buses.to_json %>;
+
+    // Looping through the nearby buses to put bus markers on map
+    nearbyBuses.forEach(function (element){
+      // Bus latitude and longitude
+      var busLocation = new google.maps.LatLng(element['LATITUDE'], element['LONGITUDE']);
+
+      // Bus marker
+      var busMarker = new google.maps.Marker({
+        position: busLocation,
+        map: map,
+        animation: google.maps.Animation.DROP,
+        title: element["ROUTE"] + ' ' + element['DIRECTION']
+      });
+
+      // Create info window for each marker
+      var contentString = '<div id="content"><h4>Route ' +
+        element['ROUTE'] + ' ' + element['DIRECTION'] +
+        '</h4><div id="bodyContent"><p>Next stop: ' +
+        element['TIMEPOINT'] + '</p></div></div>';
+
+      var infoWindow = new google.maps.InfoWindow({
+        content: contentString
+      });
+
+      // Add an event listener to open the info window when the bus marker is clicked
+      google.maps.event.addListener(busMarker, 'click', function(){
+        infoWindow.open(map, busMarker);
+      });
+    });
+  }
+  google.maps.event.addDomListener(window, 'load', initialize);
+</script>
