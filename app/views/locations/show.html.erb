@@ -38,9 +38,13 @@
 
 <script type="text/javascript">
   function initialize() {
+    // User latitude and longitude
     var userLocation = new google.maps.LatLng(<%= @location.latitude %>, <%= @location.longitude %>);
+
+    // Custom icon for user marker
     var userIcon = "<%= image_path 'man_icon.png' %>";
 
+    // Map options and map
     var mapOptions = {
       center: userLocation,
       zoom: 15
@@ -63,13 +67,30 @@
 
     // Looping through the nearby buses to put bus markers on map
     nearbyBuses.forEach(function (element){
+      // Bus latitude and longitude
       var busLocation = new google.maps.LatLng(element['LATITUDE'], element['LONGITUDE']);
 
+      // Bus marker
       var busMarker = new google.maps.Marker({
         position: busLocation,
         map: map,
         animation: google.maps.Animation.DROP,
         title: element["ROUTE"] + ' ' + element['DIRECTION']
+      });
+
+      // Create info window for each marker
+      var contentString = '<div id="content"><h4>Route ' +
+        element['ROUTE'] + ' ' + element['DIRECTION'] +
+        '</h4><div id="bodyContent"><p>Next stop: ' +
+        element['TIMEPOINT'] + '</p></div></div>';
+
+      var infoWindow = new google.maps.InfoWindow({
+        content: contentString
+      });
+
+      // Add an event listener to open the info window when the bus marker is clicked
+      google.maps.event.addListener(busMarker, 'click', function(){
+        infoWindow.open(map, busMarker);
       });
     });
   }
